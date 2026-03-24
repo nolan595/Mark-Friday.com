@@ -149,3 +149,75 @@ Based on code review (not browser render):
 ---
 
 *Report produced by @qa-engineer — TaskFlow initial build review.*
+
+---
+
+## Feature Update: Column Grid View — 2026-03-24
+
+### Files changed
+
+| File | Type |
+|------|------|
+| `components/ColumnHeader.tsx` | New |
+| `components/CellPopover.tsx` | New |
+| `components/TaskRow.tsx` | Modified |
+| `components/QuickAddRow.tsx` | Modified |
+| `components/TaskBoard.tsx` | Modified |
+| `app/globals.css` | Modified |
+
+---
+
+### Issues found and fixed
+
+| ID | Severity | Component | Description | Status |
+|----|----------|-----------|-------------|--------|
+| QA-10 | High | `CellPopover`, `TaskRow`, `QuickAddRow` | **Popover trigger toggle flicker.** The `mousedown` outside-click handler in `CellPopover` checked only whether the click was inside the popover element, not whether it was on the trigger button. When the user clicked the trigger to close an open popover, the sequence was: (1) `mousedown` fired on the trigger → not inside `popoverRef` → `onClose()` set `openPopover` to null, (2) `click` fired on the trigger → `togglePopover` saw `prev === null` → set `openPopover` back to the name → popover reopened. Same race applied to `DatePopoverDismiss` for the date dialog. Net result: clicking a trigger to close its popover instead closed it and immediately reopened it. | **Fixed** — `CellPopover` now accepts an optional `triggerRef: React.RefObject<HTMLButtonElement \| null>`. The outside-click handler excludes both the popover content and the trigger element. `TaskRow` and `QuickAddRow` each add `useRef` for all three trigger buttons and pass them via `triggerRef`. `DatePopoverDismiss` updated identically. |
+| QA-11 | Medium | `TaskRow`, `QuickAddRow` (`DatePopoverDismiss`) | **Date popover has no Escape key handler.** Unlike `CellPopover` (which handles Escape internally), the date dialog is rendered as a plain `div[role="dialog"]` and used a separate `DatePopoverDismiss` component that only handled click-outside. Pressing Escape while the date input was focused did nothing — keyboard users had no way to dismiss without clicking outside. | **Fixed** — `DatePopoverDismiss` now also registers a `keydown` listener. Escape calls `onClose()` and returns focus to `triggerRef.current`. The fix is symmetrical with `CellPopover`'s Escape behaviour. |
+| QA-12 | Medium | `CellPopover` | **Escape key did not return focus to the trigger.** The Escape handler called `onClose()` but had no reference to the trigger element, so focus was lost to `document.body` after dismissal. Keyboard users had to re-tab from the start of the row. | **Fixed** — `CellPopover` now accepts `triggerRef` (same prop introduced for QA-10) and calls `triggerRef?.current?.focus()` inside the Escape handler. |
+
+---
+
+### Issues open (need human review)
+
+| ID | Severity | Component | Description |
+|----|----------|-----------|-------------|
+| QA-13 | Medium | `CompletedSection` | Spec deviation: `design-delta.md` Section 12 states completed rows should adopt the column grid (same column widths, 48px height, cells non-editable). The implementation keeps the original chip layout (`h-14`, flat row with chips) and does not import `COLUMN_WIDTHS`. The completed rows are therefore visually misaligned from the active grid. Not a runtime bug, but a visible inconsistency once the list has both active and completed rows visible simultaneously. Recommend aligning `CompletedTaskRow` to the grid in a follow-up. |
+| QA-14 | Low | `ColumnHeader` | Invalid ARIA structure: `role="row"` is used on the header container, with `role="columnheader"` on child cells. Per the ARIA spec, `role="row"` is only valid inside a `role="grid"`, `role="treegrid"`, or `role="rowgroup"`. Without a grid ancestor, screen readers may ignore or misinterpret the row/columnheader semantics. The practical impact is low (the header is non-interactive and the column labels are still readable as text), but the ARIA tree is technically malformed. Recommend either wrapping in `role="grid"` with the task list as `role="rowgroup"`, or simplifying the header to plain labelled divs with no table-like ARIA. |
+| QA-15 | Low | `CellPopover` | `children` prop is declared in the `CellPopoverProps` interface but is never rendered in the component body. It is dead interface surface that implies extensibility which does not exist. Remove the prop or implement it. |
+| QA-16 | Low | `TaskRow` | `PRIORITY_OPTIONS` and `WORKLOAD_OPTIONS` are defined identically in both `TaskRow.tsx` and `QuickAddRow.tsx`. Any future change to option labels, colours, or ordering must be made in two places. Extract to a shared `lib/taskOptions.ts` or to `CellPopover.tsx` as named exports. |
+
+---
+
+### Test suite
+
+All pre-existing tests continue to pass. No new test failures introduced by this feature.
+
+| File | Tests | Pass | Fail |
+|------|-------|------|------|
+| `tests/api/tasks.test.ts` | 11 | 11 | 0 |
+| `tests/api/tasks-id.test.ts` | 10 | 10 | 0 |
+| `tests/api/bulk.test.ts` | 7 | 7 | 0 |
+| `tests/api/voice.test.ts` | 12 | 12 | 0 |
+| `tests/utils/utils.test.ts` | 13 | 13 | 0 |
+| **Total** | **53** | **53** | **0** |
+
+No new automated tests were added for this feature. The feature is entirely client-side (no new API routes, no schema changes). The `POST /api/tasks` route already accepted `priority`, `dueDate`, and `workload` as optional fields (validated by Zod), and the existing task-creation tests cover that path. Component-level tests remain out of scope (no `@testing-library/react` installed — unchanged from initial report).
+
+---
+
+### Regression check
+
+| Area | Verdict | Notes |
+|------|---------|-------|
+| `TaskEditPanel` | No regression | Untouched. `onSave` signature unchanged. `TaskBoard.updateTask` signature unchanged. |
+| `CompletedSection` | No regression | Untouched — does not import `COLUMN_WIDTHS` or `CellPopover`. Chip layout preserved. See QA-13 for spec deviation. |
+| `VoiceBrainDump` / `VoicePreviewModal` | No regression | Both untouched. `bulkCreateTasks` signature unchanged. |
+| DnD reorder | No regression | `TaskBoard.handleDragEnd` and `reorderTasks` are unchanged. `TaskRow` still uses `useSortable` with the same `id` prop. |
+| Task completion animation | No regression | `isCompleting` state, `handleComplete`, and the `.task-row-completing` CSS class are all unchanged in `TaskRow`. |
+| `createTask` API call | Verified correct | `TaskBoard.createTask` now passes `{ title, priority, dueDate, workload }` in the POST body (line 161). The API schema already accepted these optional fields. |
+| `COLUMN_WIDTHS` alignment | Verified correct | Both `TaskRow` and `QuickAddRow` import `COLUMN_WIDTHS` from `ColumnHeader`. No hardcoded widths in the new column cells. `ColumnHeader` itself uses the same constants. |
+| `onUpdate` prop wiring | Verified correct | `TaskBoard` passes `onUpdate={(patch) => updateTask(task.id, patch)}` to every `TaskRow` inside the `SortableContext` map. No render path skips this prop. |
+
+---
+
+*Section appended by @qa-engineer — Column Grid View feature review.*

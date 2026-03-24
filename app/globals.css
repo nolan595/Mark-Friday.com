@@ -112,6 +112,11 @@
   to { opacity: 1; }
 }
 
+@keyframes popover-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes slide-in-right {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
@@ -270,6 +275,11 @@ input[type="date"] {
 /* Textarea resize handle */
 textarea {
   resize: vertical;
+}
+
+/* Cell popover entrance */
+.cell-popover {
+  animation: popover-enter 100ms ease-out forwards;
 }
 
 /* Filter bar horizontal scroll */

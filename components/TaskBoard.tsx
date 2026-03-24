@@ -27,6 +27,7 @@ import VoiceBrainDump from './VoiceBrainDump'
 import VoicePreviewModal from './VoicePreviewModal'
 import QuickAddRow from './QuickAddRow'
 import EmptyState from './EmptyState'
+import ColumnHeader from './ColumnHeader'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,12 +42,31 @@ interface ToastItem {
 
 function TaskRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 h-14 px-4 border-b border-border bg-surface animate-pulse">
-      <div className="w-4 h-4 rounded bg-surface-raised hidden md:block" />
-      <div className="w-5 h-5 rounded-full bg-surface-raised flex-shrink-0" />
-      <div className="flex-1 h-3 rounded-full bg-surface-raised max-w-[60%]" />
-      <div className="w-10 h-[22px] rounded-full bg-surface-raised" />
-      <div className="w-14 h-[22px] rounded-full bg-surface-raised" />
+    <div className="flex items-center h-12 border-b border-border bg-surface animate-pulse">
+      {/* Drag handle */}
+      <div className="w-8 flex-shrink-0 hidden md:block" />
+      {/* Checkbox */}
+      <div className="w-10 flex-shrink-0 flex items-center justify-center">
+        <div className="w-5 h-5 rounded-full bg-surface-raised" />
+      </div>
+      {/* NAME */}
+      <div className="flex-1 min-w-[200px] pr-4">
+        <div className="h-2.5 rounded-full bg-surface-raised max-w-[55%]" />
+      </div>
+      {/* PRIORITY */}
+      <div className="w-[120px] flex-shrink-0 hidden md:block pl-2">
+        <div className="w-16 h-2.5 rounded-full bg-surface-raised" />
+      </div>
+      {/* DUE DATE */}
+      <div className="w-[130px] flex-shrink-0 hidden md:block pl-2">
+        <div className="w-[72px] h-2.5 rounded-full bg-surface-raised" />
+      </div>
+      {/* WORKLOAD */}
+      <div className="w-[120px] flex-shrink-0 hidden md:block pl-2">
+        <div className="w-14 h-2.5 rounded-full bg-surface-raised" />
+      </div>
+      {/* Actions */}
+      <div className="w-[72px] flex-shrink-0" />
     </div>
   )
 }
@@ -117,14 +137,15 @@ export default function TaskBoard() {
   // ─── CRUD ────────────────────────────────────────────────────────────────
 
   const createTask = useCallback(
-    async (title: string) => {
+    async (payload: { title: string; priority: Task['priority']; dueDate: string | null; workload: Task['workload'] }) => {
+      const { title, priority, dueDate, workload } = payload
       const tempId = `temp-${Date.now()}`
       const optimistic: Task = {
         id: tempId,
         title,
-        priority: 'NONE',
-        dueDate: null,
-        workload: 'NONE',
+        priority,
+        dueDate,
+        workload,
         note: null,
         status: 'ACTIVE',
         sortOrder: 0,
@@ -137,7 +158,7 @@ export default function TaskBoard() {
         const res = await fetch('/api/tasks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title }),
+          body: JSON.stringify({ title, priority, dueDate, workload }),
         })
         if (!res.ok) {
           const err = await res.json()
@@ -462,6 +483,9 @@ export default function TaskBoard() {
             </span>
           </div>
 
+          {/* Column header */}
+          <ColumnHeader />
+
           {/* Quick add */}
           <div onClick={(e) => e.stopPropagation()}>
             <QuickAddRow onAdd={createTask} />
@@ -495,6 +519,7 @@ export default function TaskBoard() {
                         onComplete={completeTask}
                         onDelete={deleteTask}
                         onEdit={setEditingTask}
+                        onUpdate={(patch) => updateTask(task.id, patch)}
                       />
                     ))}
                   </ul>

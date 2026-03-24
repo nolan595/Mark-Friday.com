@@ -1,0 +1,302 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Base surfaces */
+  --color-background: #0A0A0F;
+  --color-surface: #111118;
+  --color-surface-raised: #1A1A24;
+  --color-drag-active: #1A1A28;
+  --color-border: #2A2A35;
+  --color-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Text */
+  --color-text-primary: #F0F0F5;
+  --color-text-muted: #8888A0;
+
+  /* Brand */
+  --color-accent: #6C63FF;
+  --color-focus-ring: #6C63FF;
+
+  /* Semantic — priority */
+  --color-priority-high: #FF6B6B;
+  --color-priority-med: #FFB347;
+  --color-priority-low: #4ECDC4;
+
+  /* Semantic — status */
+  --color-completed: #52C788;
+  --color-danger: #FF4D4D;
+
+  /* Semantic — standard */
+  --color-success: #52C788;
+  --color-warning: #FFB347;
+  --color-error: #FF4D4D;
+  --color-info: #6C63FF;
+
+  /* Typography */
+  --font-display: var(--font-syne), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+}
+
+/* Keyframe animations */
+@keyframes checkmark-stroke {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes checkmark-draw {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes ripple-expand {
+  from { transform: scale(1); opacity: 0.6; }
+  to { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes ripple-full {
+  from { transform: scale(0); opacity: 0.4; }
+  to { transform: scale(3); opacity: 0; }
+}
+
+@keyframes task-complete-fade {
+  from { opacity: 1; }
+  to { opacity: 0.5; }
+}
+
+@keyframes voice-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes voice-ring-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes modal-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes panel-slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes task-stagger-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes task-card-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes saved-flash {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes task-enter {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-out-right {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+/* Animation utility classes */
+.voice-idle {
+  animation: voice-pulse 2s ease-in-out infinite;
+}
+
+.voice-ring-1 {
+  animation: voice-ring-ping 1.5s ease-out infinite;
+}
+
+.voice-ring-2 {
+  animation: voice-ring-ping 1.5s ease-out infinite;
+  animation-delay: 200ms;
+}
+
+.voice-ring-3 {
+  animation: voice-ring-ping 1.5s ease-out infinite;
+  animation-delay: 400ms;
+}
+
+.modal-enter {
+  animation: modal-slide-up 300ms ease-out forwards;
+}
+
+.panel-enter {
+  animation: panel-slide-in 250ms ease-out forwards;
+}
+
+.task-card {
+  animation: task-card-enter 250ms ease-out forwards;
+  opacity: 0;
+}
+
+.saved-indicator {
+  animation: saved-flash 1.5s ease-in-out forwards;
+}
+
+.task-new {
+  animation: task-enter 300ms ease-out forwards;
+  opacity: 0;
+}
+
+.task-row-completing {
+  transition: opacity 400ms ease-out;
+  opacity: 0.5;
+}
+
+.checkbox-checkmark {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkmark-draw 0.3s ease-out forwards;
+}
+
+.checkbox-ripple {
+  animation: ripple-full 0.3s ease-out forwards;
+  animation-delay: 50ms;
+}
+
+.board-dimmed {
+  transition: opacity 250ms ease-out;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.board-normal {
+  transition: opacity 250ms ease-out;
+  opacity: 1;
+}
+
+/* Completed section expand/collapse */
+.completed-list {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms ease-out;
+}
+
+.completed-list.expanded {
+  grid-template-rows: 1fr;
+}
+
+.completed-list-inner {
+  overflow: hidden;
+}
+
+/* Toast animations */
+.toast-enter {
+  animation: slide-in-right 200ms ease-out forwards;
+}
+
+.toast-exit {
+  animation: slide-out-right 150ms ease-out forwards;
+}
+
+/* Base resets */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: #0A0A0F;
+}
+
+body {
+  background-color: #0A0A0F;
+  color: #F0F0F5;
+  font-family: var(--font-inter), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus ring — keyboard only */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Active/press state */
+button:active {
+  transform: scale(0.97);
+  transition: transform 100ms ease-out;
+}
+
+/* Date input styling for dark theme */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Textarea resize handle */
+textarea {
+  resize: vertical;
+}
+
+/* Filter bar horizontal scroll */
+.filter-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.filter-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* prefers-reduced-motion: cut all durations to near-zero */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Exception: checkmark draw reduced to 100ms per spec */
+  .checkbox-checkmark {
+    animation-duration: 100ms !important;
+  }
+
+  .checkbox-ripple {
+    animation-duration: 100ms !important;
+  }
+}

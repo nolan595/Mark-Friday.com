@@ -36,6 +36,10 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
 
+      - name: Deploy to Netlify
+        if: github.ref == 'refs/heads/main'
+        run: npx netlify-cli deploy --prod --dir .next --site ${{ secrets.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
